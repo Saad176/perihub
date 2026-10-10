@@ -53,6 +53,7 @@ The portable app is under Latest build/Devices; keep its whole folder. The singl
 4. Paste the corresponding docs/releases file as the description.
 5. Attach the Setup EXE and wait for the upload.
 6. Set it as latest and publish after review.
+7. If the installer filename changes, update the README download links and the repository About website link to that release's installer. Confirm both links download the EXE directly.
 
 The installer goes in the release attachment area. GitHub's automatic Source code ZIP/TAR files contain source, not a ready-to-run app.
 
