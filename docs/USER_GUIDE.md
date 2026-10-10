@@ -1,6 +1,8 @@
 # PeriHub 0.6.2
 
-A compact Windows tray app for the Corsair K95 RGB Platinum and AULA SC900 Pro.
+A compact Windows tray app for peripheral settings, battery monitoring and keyboard lighting.
+
+Currently supported devices: AULA SC900 Pro and Corsair K95 RGB Platinum. Additional devices can be supported as their controls are implemented and tested.
 
 ## Install or run
 
@@ -22,7 +24,7 @@ K95: Onboard restores its saved animation. Static, Breathe, Rainbow, Soft Rainbo
 
 ## Window and preferences
 
-Default size is 620 x 800, minimum 620 x 640. The window stays resizable. The title bar supports dragging, pinning, minimize/maximize and hiding. Device and mouse tab selection are remembered. Preferences use the current user's Qt settings location, not the install directory. Only the two supported devices and verified controls appear.
+Default size is 620 x 800, minimum 620 x 640. The window stays resizable. The title bar supports dragging, pinning, minimize/maximize and hiding. Device and mouse tab selection are remembered. Preferences use the current user's Qt settings location, not the install directory. Only detected supported devices and their verified controls appear.
 
 ## Build from source
 

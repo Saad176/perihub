@@ -2,11 +2,10 @@
 
 # PeriHub
 
-A compact Windows control panel for the **AULA SC900 Pro** and **Corsair K95 RGB Platinum**.
+A compact Windows tray app for peripheral settings, battery monitoring and keyboard lighting.
 
 ![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-4caceb?style=flat-square)
 ![Version](https://img.shields.io/badge/version-0.6.2-55d076?style=flat-square)
-![Devices](https://img.shields.io/badge/supported_devices-2-a4acb0?style=flat-square)
 
 [![Download PeriHub for Windows](images/download-windows.svg)](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.2-Setup.exe)
 
@@ -45,12 +44,16 @@ This is the main PeriHub repository: source, tests, build scripts and documentat
 
 *Representative interface previews use fixture data. Connection, battery and settings reflect your hardware when running the app.*
 
-## What it controls
+## Currently supported devices
+
+Support is added per device as its controls are implemented and tested. The current release supports:
 
 | Device | Connection | Available controls |
 | :--- | :--- | :--- |
 | **AULA SC900 Pro** | Original 8K receiver or USB wired | 1–6 DPI stages, 50-DPI increments, active stage, polling, sensor mode, LOD, Motion Sync, Ripple Control, Angle Snapping, debounce and dormancy |
 | **Corsair K95 RGB Platinum** | USB | Onboard restore, Static, Breathe, Rainbow, Soft Rainbow, Wave, Spectrum, Twinkle and Off; brightness, speed and color where applicable |
+
+Have a different device? [Request support](https://github.com/Saad176/perihub/issues/new) with its exact model and connection type. Devices outside this list are not supported yet.
 
 ### Mouse details
 
@@ -69,13 +72,13 @@ This is the main PeriHub repository: source, tests, build scripts and documentat
 - Keyboard software animations continue while the window is hidden.
 - Normal Quit restores the keyboard's saved onboard lighting.
 - Device and mouse-tab selections are remembered.
-- Device cards and settings appear only when the specific supported hardware is detected. When neither device is present, the app shows an empty state. Plugging or unplugging devices updates the list automatically.
+- Device cards and settings appear only when supported hardware is detected. When no supported devices are present, the app shows an empty state. Plugging or unplugging devices updates the list automatically.
 
 ## Things to know
 
 Battery reports can take a few seconds to arrive; stale readings become unavailable. Polling changes can briefly interrupt the mouse while its transport reconnects. Keyboard software effects require the app to remain running, and other lighting software can override them.
 
-This build supports the two devices above. Mouse button remapping, macros, LED modes, profile editing, Bluetooth and firmware flashing are not verified or implemented. See [release status](RELEASE_STATUS.md) for the exact verification boundary.
+Compatibility and available controls depend on the device and release. Mouse button remapping, macros, LED modes, profile editing, Bluetooth and firmware flashing are not verified or implemented in this release. See [release status](RELEASE_STATUS.md) for the exact verification boundary.
 
 ## Run or build from source
 
@@ -145,6 +148,6 @@ For an existing checkout, use `git pull --ff-only`. To save work to GitHub, comm
 
 ## Project status
 
-A personal Windows app built and verified on the owner's SC900 Pro and K95 Platinum. It is independent of AULA and Corsair and is not affiliated with either company.
+PeriHub is an independent peripheral control project. The current device integrations have been verified on the developer's hardware; broader hardware testing is ongoing work. The project is not affiliated with device manufacturers.
 
 Source is available for inspection, but no open-source license has been granted. OEM device artwork and dependencies retain their respective rights; unresolved distribution items are listed in [release status](RELEASE_STATUS.md). The older Linux source preview remains a separate local archive, not a Windows release asset.
