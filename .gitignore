@@ -1,0 +1,19 @@
+__pycache__/
+Latest build/
+Old builds/
+devtools/previews/
+build/
+dist/
+dist-next/
+dist-v2/
+dist-v*/
+helping stuff/
+*.spec
+.build-tools/
+release/
+dist-wired/
+installer-test/
+*_preview.png
+aula_capture.png
+mouse_capture.jsonl
+mouse_dpi_capture.log
