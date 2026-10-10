@@ -25,7 +25,7 @@ LINE = "#526065"
 MUTED = "#a4acb0"
 BLUE = "#4caceb"
 GREEN = "#55d076"
-APP_VERSION = "0.6.3"
+APP_VERSION = "0.6.4"
 _FONTS_LOADED = False
 
 
@@ -579,8 +579,8 @@ class MainWindow(QMainWindow):
         row.addStretch()
         if receiver_only:
             battery_note = (
-                "Battery level is estimated by the mouse. It may read higher while "
-                "charging and take a few minutes to settle after unplugging."
+                "May read higher while charging.\n"
+                "Allow a few minutes to settle after unplugging."
             )
             battery_info = IconButton("info", battery_note)
             battery_info.setFixedSize(20, 24)

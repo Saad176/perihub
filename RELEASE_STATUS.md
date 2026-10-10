@@ -1,8 +1,10 @@
-# Devices 0.6.3 — release status
+# Devices 0.6.4 — release status
 
 Updated 2026-10-10. PeriHub is a Windows peripheral control app. This release currently supports the SC900 Pro and K95 RGB Platinum.
 
 ## Completed
+
+- Version 0.6.4 shortens the battery explanation and displays it on two lines.
 
 - Version 0.6.3 adds a small in-app battery information icon. Hover or click to explain temporary charging-related estimate changes; no extra battery polling is introduced.
 
