@@ -12,7 +12,7 @@ A compact Windows control panel for the **AULA SC900 Pro** and **Corsair K95 RGB
 
 **[Download setup directly](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.2-Setup.exe)** · [Release notes](https://github.com/Saad176/perihub/releases/latest)
 
-No Python install. No terminal. No AULA or iCUE dependency.
+Everything you need is included in the installer.
 
 </div>
 
