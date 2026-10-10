@@ -1,12 +1,30 @@
 """Packet checks for settings that carry other configuration bytes."""
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 import mouse_direct
 
 
 class MousePacketTests(unittest.TestCase):
+    def test_first_dpi_stage_rejects_other_stage_reply(self):
+        wrong = bytes([9, 0x8C, 5, 7, 2, 0, 0, 0, 0])
+        correct = bytes([9, 0x8C, 0, 7, 0, 0, 0, 0, 0])
+        device = Mock()
+        device.send_feature_report.return_value = 9
+        device.get_feature_report.side_effect = [wrong, correct]
+        with patch.object(mouse_direct, '_device', return_value=device), patch.object(mouse_direct.time, 'sleep'):
+            self.assertEqual(mouse_direct._query(0x8C, 0), correct)
+        self.assertEqual(device.get_feature_report.call_count, 2)
+
+    def test_data_reply_does_not_require_zero_argument_echo(self):
+        reply = bytes([9, 0x8B, 6, 1, 0, 1, 1, 0, 0])
+        device = Mock()
+        device.send_feature_report.return_value = 9
+        device.get_feature_report.return_value = reply
+        with patch.object(mouse_direct, '_device', return_value=device), patch.object(mouse_direct.time, 'sleep'):
+            self.assertEqual(mouse_direct._query(0x8B), reply)
+
     def device_info(self, pid, path):
         return {'product_id': pid, 'interface_number': 3, 'usage_page': 0xff05,
                 'product_string': 'SC900PRO', 'path': path}

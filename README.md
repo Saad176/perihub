@@ -5,11 +5,11 @@
 A compact Windows tray app for peripheral settings, battery monitoring and keyboard lighting.
 
 ![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-4caceb?style=flat-square)
-![Version](https://img.shields.io/badge/version-0.6.4-55d076?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.6.5-55d076?style=flat-square)
 
-[![Download PeriHub for Windows](images/download-windows.svg)](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.4-Setup.exe)
+[![Download PeriHub for Windows](images/download-windows.svg)](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.5-Setup.exe)
 
-**[Download setup directly](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.4-Setup.exe)** · [Release notes](https://github.com/Saad176/perihub/releases/latest)
+**[Download setup directly](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.5-Setup.exe)** · [Release notes](https://github.com/Saad176/perihub/releases/latest)
 
 Everything you need is included in the installer.
 
@@ -20,7 +20,7 @@ Everything you need is included in the installer.
 ## Get the app
 
 1. Click **Download for Windows** above. The Setup EXE downloads directly.
-2. Run the downloaded **`Devices-0.6.4-Setup.exe`**.
+2. Run the downloaded **`Devices-0.6.5-Setup.exe`**.
 3. Open **Devices** from the Start menu.
 
 **That single Setup EXE includes everything you need.** The automatically generated **Source code** ZIP and TAR files are for development; they are not the installer.
@@ -102,7 +102,7 @@ Build the installer with Inno Setup installed:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build-release.ps1
 ```
 
-Output: **`Latest build/Devices/Devices.exe`** and **`Latest build/Devices-0.6.4-Setup.exe`**. Portable use requires the complete **Devices** folder, including `_internal`.
+Output: **`Latest build/Devices/Devices.exe`** and **`Latest build/Devices-0.6.5-Setup.exe`**. Portable use requires the complete **Devices** folder, including `_internal`.
 
 Run regression tests:
 
@@ -127,7 +127,7 @@ python -m unittest discover -s tests -q
 ## Documentation
 
 - [User guide](docs/USER_GUIDE.md)
-- [Current release notes](docs/releases/v0.6.4.md)
+- [Current release notes](docs/releases/v0.6.5.md)
 - [GitHub setup and release guide](docs/GITHUB_GUIDE.md)
 - [Protocol notes](PROTOCOL_NOTES.md)
 - [Release status and remaining work](RELEASE_STATUS.md)

@@ -25,7 +25,7 @@ LINE = "#526065"
 MUTED = "#a4acb0"
 BLUE = "#4caceb"
 GREEN = "#55d076"
-APP_VERSION = "0.6.4"
+APP_VERSION = "0.6.5"
 _FONTS_LOADED = False
 
 
@@ -46,10 +46,6 @@ class ScanEvents(QObject):
 
 class MouseEvents(QObject):
     finished = Signal(object)
-
-
-class SensorEvents(QObject):
-    finished = Signal(str, object)
 
 
 class CommandEvents(QObject):
@@ -273,9 +269,8 @@ class MainWindow(QMainWindow):
         self.scan_events.finished.connect(self.on_scan_finished)
         self.mouse_events = MouseEvents()
         self.mouse_events.finished.connect(self.on_mouse_read)
-        self.sensor_events = SensorEvents()
-        self.sensor_events.finished.connect(self.on_sensor_written)
         self.sensor_pending = set()
+        self.polling_pending = False
         self.mouse_reading = False
         self.mouse_ready = False
         self.next_mouse_retry = 0
@@ -703,14 +698,17 @@ class MainWindow(QMainWindow):
         polling_layout.addWidget(label("POLLING RATE", 13, weight=True))
         polling_layout.addWidget(label("Select the mouse report rate", 10, MUTED))
         self.poll_buttons = {}
+        self.poll_group = QButtonGroup(polling_page)
+        self.poll_group.setExclusive(True)
         for rates in ((125, 250, 500), (1000, 2000), (4000, 8000)):
             rate_row = QHBoxLayout()
             for hz in rates:
                 button = QPushButton(f"{hz} Hz")
                 button.setObjectName("tab")
                 button.setCheckable(True)
-                button.setEnabled(self.state["mouse"])
+                button.setEnabled(self.state["mouse"] and not self.polling_pending)
                 button.clicked.connect(lambda checked=False, value=hz: self.apply_mouse_polling(value))
+                self.poll_group.addButton(button)
                 rate_row.addWidget(button)
                 self.poll_buttons[hz] = button
             polling_layout.addLayout(rate_row)
@@ -734,7 +732,7 @@ class MainWindow(QMainWindow):
                 button = QPushButton(text_value)
                 button.setObjectName("tab")
                 button.setCheckable(True)
-                button.setEnabled(self.state["mouse"])
+                button.setEnabled(self.state["mouse"] and key not in self.sensor_pending)
                 button.clicked.connect(lambda checked=False, setting=key, selection=value: self.apply_sensor(setting, selection))
                 row.addWidget(button)
                 self.sensor_buttons[key][value] = button
@@ -835,6 +833,13 @@ class MainWindow(QMainWindow):
         self.queue_mouse_command("stage", (stage,))
 
     def apply_mouse_polling(self, hz):
+        if self.polling_pending or (self.mouse_state and hz == self.mouse_state["polling_hz"]):
+            return
+        if not self.state["mouse"] or not self.mouse_ready or self.scan_stop.is_set():
+            return
+        self.polling_pending = True
+        for button in self.poll_buttons.values():
+            button.setEnabled(False)
         self.queue_mouse_command("polling", (hz,))
 
     def queue_mouse_command(self, kind, values):
@@ -857,8 +862,33 @@ class MainWindow(QMainWindow):
 
     def on_mouse_command(self, kind, values, connection, result):
         self.command_pending = max(0, self.command_pending - 1)
+        if kind == "polling":
+            self.polling_pending = False
+            if self.selected == "mouse":
+                for button in self.poll_buttons.values():
+                    button.setEnabled(self.state["mouse"] and self.mouse_ready)
+        elif kind == "sensor":
+            key, value = values
+            self.sensor_pending.discard(key)
+            if self.selected == "mouse":
+                for button in self.sensor_buttons[key].values():
+                    button.setEnabled(self.state["mouse"] and self.mouse_ready)
         if connection != self.state.get("mouse_connection"):
+            if self.command_pending == 0:
+                self.refresh_mouse_state()
             return
+        if kind == "polling" and not isinstance(result, Exception) and self.mouse_state:
+            self.mouse_state["polling_hz"] = result
+        if kind == "polling" and self.selected == "mouse":
+            verified = self.mouse_state["polling_hz"] if isinstance(result, Exception) and self.mouse_state else result
+            if verified in self.poll_buttons:
+                self.poll_buttons[verified].setChecked(True)
+        elif kind == "sensor":
+            if not isinstance(result, Exception) and self.mouse_state:
+                self.mouse_state[key] = result
+            verified = self.mouse_state.get(key) if self.mouse_state else None
+            if self.selected == "mouse" and verified in self.sensor_buttons[key]:
+                self.sensor_buttons[key][verified].setChecked(True)
         if isinstance(result, Exception):
             self.set_mouse_message(f"Could not apply mouse setting: {result}")
         else:
@@ -968,7 +998,9 @@ class MainWindow(QMainWindow):
             self.dpi_use[stage].setText("Active" if active else "Use")
             self.dpi_use[stage].setEnabled(self.state["mouse"] and stage != state["active_stage"])
         for hz, button in self.poll_buttons.items():
-            button.setChecked(hz == state["polling_hz"])
+            if not self.polling_pending:
+                button.setChecked(hz == state["polling_hz"])
+            button.setEnabled(self.state["mouse"] and not self.polling_pending)
         for key, options in self.sensor_buttons.items():
             if key in self.sensor_pending:
                 continue
@@ -984,40 +1016,12 @@ class MainWindow(QMainWindow):
         self.queue_mouse_command("count", (count,))
 
     def apply_sensor(self, key, value):
-        if key in self.sensor_pending:
+        if key in self.sensor_pending or not self.state["mouse"] or not self.mouse_ready or self.scan_stop.is_set():
             return
         self.sensor_pending.add(key)
         for button in self.sensor_buttons[key].values():
             button.setEnabled(False)
-        threading.Thread(target=self._sensor_write_worker, args=(key, value), daemon=True).start()
-
-    def _sensor_write_worker(self, key, value):
-        try:
-            from mouse_direct import set_sensor_setting, read_sensor_setting
-            set_sensor_setting(key, value)
-            result = read_sensor_setting(key)
-        except Exception as exc:
-            result = exc
-        self.sensor_events.finished.emit(key, result)
-
-    def on_sensor_written(self, key, result):
-        self.sensor_pending.discard(key)
-        if self.selected != "mouse":
-            if not isinstance(result, Exception) and self.mouse_state:
-                self.mouse_state[key] = result
-            return
-        for button in self.sensor_buttons[key].values():
-            button.setEnabled(self.state["mouse"])
-        if isinstance(result, Exception):
-            if self.mouse_state:
-                self.sensor_buttons[key][self.mouse_state[key]].setChecked(True)
-            QMessageBox.warning(self, "Mouse unavailable", str(result))
-            return
-        if self.mouse_state:
-            self.mouse_state[key] = result
-        if result in self.sensor_buttons[key]:
-            self.sensor_buttons[key][result].setChecked(True)
-        self.set_mouse_message("Sensor setting applied")
+        self.queue_mouse_command("sensor", (key, value))
 
     def apply_timing(self, key):
         field = self.timing_fields[key]

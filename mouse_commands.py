@@ -36,8 +36,16 @@ def execute(kind, values, connection):
             mouse.set_dormancy(value)
             report = mouse._query(0x89, 3)
             actual = report[3] + (report[4] << 8)
+        elif kind == 'sensor':
+            key, value = values
+            mouse.set_sensor_setting(key, value)
+            actual = mouse.read_sensor_setting(key)
         else:
             raise ValueError('Unknown mouse command')
         if actual != value:
             raise OSError(f'Mouse did not confirm {value}; read back {actual}')
+        if connection is not None:
+            info = mouse.find_device()
+            if info is None or info['connection'] != connection:
+                raise OSError('Mouse connection changed during verification; try again')
         return actual

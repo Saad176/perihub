@@ -283,10 +283,65 @@ class MouseUiTests(unittest.TestCase):
                                    "polling_hz": 1000, "debounce_ms": 8, "dormancy_s": 60,
                                    "lod": 0, "ripple": 0, "angle": 0, "motion": 1, "sensor_mode": 1})
         self.window.show_tab("Sensor")
-        with patch.object(self.window, "_sensor_write_worker"):
+        with patch.object(self.window, "queue_mouse_command"):
             self.window.sensor_buttons["sensor_mode"][0].click()
         selected = [value for value, button in self.window.sensor_buttons["sensor_mode"].items() if button.isChecked()]
         self.assertEqual(selected, [0])
+
+    def test_polling_selection_exclusive_and_disabled_until_verified(self):
+        self.window.show_tab('Polling')
+        release = threading.Event()
+        def slow(kind, values, connection):
+            release.wait(2)
+            return values[-1]
+        try:
+            with patch('mouse_commands.execute', side_effect=slow):
+                self.window.poll_buttons[500].click()
+                self.assertEqual([hz for hz, b in self.window.poll_buttons.items() if b.isChecked()], [500])
+                self.assertTrue(all(not b.isEnabled() for b in self.window.poll_buttons.values()))
+                self.window.apply_mouse_polling(250)
+                self.assertEqual(self.window.command_pending, 1)
+                release.set()
+                self.wait_commands()
+                self.assertEqual(self.window.mouse_state['polling_hz'], 500)
+                self.assertTrue(all(b.isEnabled() for b in self.window.poll_buttons.values()))
+        finally:
+            release.set()
+
+    def test_sensor_completion_after_transport_change_is_ignored(self):
+        self.window.state['mouse_connection'] = 'receiver'
+        self.window.show_tab('Sensor')
+        release = threading.Event()
+        def slow(kind, values, connection):
+            release.wait(2)
+            return values[-1]
+        try:
+            with patch('mouse_commands.execute', side_effect=slow):
+                self.window.sensor_buttons['motion'][0].click()
+                self.window.state['mouse_connection'] = 'wired'
+                release.set()
+                self.wait_commands()
+                self.assertEqual(self.window.mouse_state['motion'], 1)
+                self.assertNotIn('motion', self.window.sensor_pending)
+        finally:
+            release.set()
+
+    def test_sensor_completion_after_page_switch_handles_deleted_widgets(self):
+        release = threading.Event()
+        def slow(kind, values, connection):
+            release.wait(2)
+            return values[-1]
+        try:
+            with patch('mouse_commands.execute', side_effect=slow):
+                self.window.apply_sensor('motion', 0)
+                self.window.show_device('keyboard')
+                self.qt.sendPostedEvents()
+                release.set()
+                self.wait_commands()
+                self.assertEqual(self.window.mouse_state['motion'], 0)
+                self.assertNotIn('motion', self.window.sensor_pending)
+        finally:
+            release.set()
 
     def test_keyboard_effect_selection_is_exclusive(self):
         self.window.show_device("keyboard")

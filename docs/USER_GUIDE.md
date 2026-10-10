@@ -1,4 +1,4 @@
-# PeriHub 0.6.4
+# PeriHub 0.6.5
 
 A compact Windows tray app for peripheral settings, battery monitoring and keyboard lighting.
 
@@ -6,7 +6,7 @@ Currently supported devices: AULA SC900 Pro and Corsair K95 RGB Platinum. Additi
 
 ## Install or run
 
-Open `Latest build\Devices-0.6.4-Setup.exe`. It installs for your Windows user, bundles Python and Qt, and creates a Start menu entry. Desktop shortcut and start-at-sign-in are optional and unchecked by default. There is no runtime dependency on AULA, iCUE, OpenRGB, PowerShell, a cloud service, or a separately installed Python.
+Open `Latest build\Devices-0.6.5-Setup.exe`. It installs for your Windows user, bundles Python and Qt, and creates a Start menu entry. Desktop shortcut and start-at-sign-in are optional and unchecked by default. There is no runtime dependency on AULA, iCUE, OpenRGB, PowerShell, a cloud service, or a separately installed Python.
 
 For portable use, open `Latest build\Devices\Devices.exe` and keep the whole folder together. Quit any older copy from its tray menu before opening an update. The EXE alone is not portable: its `_internal` folder contains the required runtime and assets. To share a single file, use the Setup EXE.
 

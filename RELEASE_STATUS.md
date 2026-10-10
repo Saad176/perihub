@@ -1,8 +1,10 @@
-# Devices 0.6.4 — release status
+# Devices 0.6.5 — release status
 
 Updated 2026-10-10. PeriHub is a Windows peripheral control app. This release currently supports the SC900 Pro and K95 RGB Platinum.
 
 ## Completed
+
+- Version 0.6.5 closes the three issues found in the reliability review: exclusive polling selection with pending controls disabled, sensor writes serialized and verified with connection guards, and strict DPI-stage reply validation including stage 1. All 54 automated regressions pass.
 
 - Version 0.6.4 shortens the battery explanation and displays it on two lines.
 
@@ -26,13 +28,13 @@ Updated 2026-10-10. PeriHub is a Windows peripheral control app. This release cu
 
 Earlier sessions verified keyboard effects visually, receiver and wired mouse settings through readback, and live battery values on this PC. The latest changes have mocked UI/transport regression tests, including a deliberately blocked mouse command while the Qt event loop stays responsive. The installer is tested in a separate directory on this development PC, including update/uninstall. This is not a clean-machine or every-firmware certification.
 
-## Still unsupported / remaining before a public release
+## Unsupported features and remaining verification
 
 - Mouse button remapping, macros, LED indicator modes, onboard profile import/export, firmware version and firmware flashing. The complete protocols are not verified; no dead controls are shown.
 - K95 macros/profile editing and native onboard animation speed. Software animations require the app to keep running. Crash/forced-kill recovery is not guaranteed.
 - Independent physical polling-rate measurement, power-cycle persistence, every sleep/wake and unplug-during-command scenario, and clean Windows 10/11 machine testing.
 - Physical display-scale review at 125%, 150% and 200%, keyboard artwork/layout confirmation, and measured long-term resource use.
-- Public distribution decisions: project license, OEM artwork permission, dependency license bundle, code signing and release hosting.
+- Public distribution decisions: project license, OEM artwork permission, dependency license bundle and code signing. Source and installers are published on GitHub.
 - Linux remains an untested source preview; no Linux binary was built on this Windows PC. Its existing shared archive remains unchanged under Old builds/linux-share.
 
 These items do not prevent the verified personal-use controls from working. They are not claims of completed support.

@@ -73,7 +73,8 @@ def _query(command, argument=0):
                 result = bytes(device.get_feature_report(9, 9))
             finally:
                 device.close()
-            if len(result) == 9 and result[:2] == bytes([9, command]) and (argument == 0 or result[2] == argument):
+            expects_argument = command in (0x89, 0x8A, 0x8C) or argument != 0
+            if len(result) == 9 and result[:2] == bytes([9, command]) and (not expects_argument or result[2] == argument):
                 return result
             time.sleep(0.15 * (attempt + 1))
     raise OSError(f"No valid SC900 Pro reply for settings query {command:02X}/{argument:02X}")
