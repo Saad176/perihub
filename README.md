@@ -8,7 +8,9 @@ A compact Windows control panel for the **AULA SC900 Pro** and **Corsair K95 RGB
 ![Version](https://img.shields.io/badge/version-0.6.2-55d076?style=flat-square)
 ![Devices](https://img.shields.io/badge/supported_devices-2-a4acb0?style=flat-square)
 
-**[Download the Windows installer](https://github.com/Saad176/perihub/releases/latest)**
+[![Download PeriHub for Windows](images/download-windows.svg)](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.2-Setup.exe)
+
+**[Download setup directly](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.2-Setup.exe)** · [Release notes](https://github.com/Saad176/perihub/releases/latest)
 
 No Python install. No terminal. No AULA or iCUE dependency.
 
@@ -18,9 +20,9 @@ No Python install. No terminal. No AULA or iCUE dependency.
 
 ## Get the app
 
-1. Open **[Latest release](https://github.com/Saad176/perihub/releases/latest)**.
-2. Under **Assets**, download **`Devices-0.6.2-Setup.exe`**.
-3. Run it and open **Devices** from the Start menu.
+1. Click **Download for Windows** above. The Setup EXE downloads directly.
+2. Run the downloaded **`Devices-0.6.2-Setup.exe`**.
+3. Open **Devices** from the Start menu.
 
 **That single Setup EXE includes everything you need.** The automatically generated **Source code** ZIP and TAR files are for development; they are not the installer.
 

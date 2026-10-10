@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="340" height="68" viewBox="0 0 340 68" role="img" aria-labelledby="title desc">
+  <title id="title">Download PeriHub for Windows</title>
+  <desc id="desc">Download the complete Windows installer.</desc>
+  <rect x="1" y="1" width="338" height="66" rx="12" fill="#4caceb" stroke="#78c5f4" stroke-width="2"/>
+  <g fill="none" stroke="#061218" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M34 18v23m-8-8 8 8 8-8M23 45v5h22v-5"/>
+  </g>
+  <g font-family="Segoe UI,Arial,sans-serif" fill="#061218">
+    <text x="61" y="31" font-size="19" font-weight="700">Download for Windows</text>
+    <text x="62" y="50" font-size="12">Windows 10 / 11 · x64 · Setup EXE</text>
+  </g>
+</svg>
