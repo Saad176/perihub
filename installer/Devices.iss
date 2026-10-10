@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "0.6.2"
+  #define AppVersion "0.6.3"
 #endif
 #ifndef BuildDirectory
   #define BuildDirectory "..\Latest build\Devices"

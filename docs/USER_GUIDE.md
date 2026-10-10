@@ -1,4 +1,4 @@
-# PeriHub 0.6.2
+# PeriHub 0.6.3
 
 A compact Windows tray app for peripheral settings, battery monitoring and keyboard lighting.
 
@@ -6,7 +6,7 @@ Currently supported devices: AULA SC900 Pro and Corsair K95 RGB Platinum. Additi
 
 ## Install or run
 
-Open `Latest build\Devices-0.6.2-Setup.exe`. It installs for your Windows user, bundles Python and Qt, and creates a Start menu entry. Desktop shortcut and start-at-sign-in are optional and unchecked by default. There is no runtime dependency on AULA, iCUE, OpenRGB, PowerShell, a cloud service, or a separately installed Python.
+Open `Latest build\Devices-0.6.3-Setup.exe`. It installs for your Windows user, bundles Python and Qt, and creates a Start menu entry. Desktop shortcut and start-at-sign-in are optional and unchecked by default. There is no runtime dependency on AULA, iCUE, OpenRGB, PowerShell, a cloud service, or a separately installed Python.
 
 For portable use, open `Latest build\Devices\Devices.exe` and keep the whole folder together. Quit any older copy from its tray menu before opening an update. The EXE alone is not portable: its `_internal` folder contains the required runtime and assets. To share a single file, use the Setup EXE.
 
@@ -65,3 +65,7 @@ The Linux archive in `Old builds/linux-share` remains a separate, older source p
 The main public repository at https://github.com/Saad176/perihub preserves source, assets, requirements, tests, build scripts, installer definitions and documentation. The .gitignore excludes generated builds, caches, local tools and the AULA reference software. Keep a second backup of the whole folder if you want to preserve those excluded reference files too. Attach the Setup EXE to a GitHub Release to keep a ready-to-install copy alongside a version of the source. Before a public release, resolve the license/artwork items listed in RELEASE_STATUS.md.
 
 Device cards appear only while the corresponding supported hardware is detected. Other mice and keyboards are not listed as these devices.
+
+### Battery estimate information
+
+Hover over or click the small circled information icon beside the mouse battery to learn why the reported estimate may rise while charging and take a few minutes to settle after unplugging. The tray keeps its concise battery display.

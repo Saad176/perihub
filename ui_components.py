@@ -26,6 +26,10 @@ def draw_symbol(painter, kind, rect, color="#e3e8ea"):
         painter.drawRect(QRectF(4, 11, 25, 14))
         painter.drawRect(QRectF(29, 15, 3, 6))
         painter.drawLine(QPointF(12, 18), QPointF(21, 18))
+    elif kind == "info":
+        painter.drawEllipse(QRectF(5, 5, 26, 26))
+        painter.drawPoint(QPointF(18, 12))
+        painter.drawLine(QPointF(18, 17), QPointF(18, 25))
     elif kind == "scan":
         painter.drawLine(QPointF(18, 6), QPointF(18, 30))
         painter.drawLine(QPointF(6, 18), QPointF(30, 18))

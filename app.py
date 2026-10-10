@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QApplication, QColorDialog, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QMainWindow, QMenu, QMessageBox, QPushButton, QScrollArea, QSlider,
     QStackedWidget, QSystemTrayIcon, QVBoxLayout, QWidget, QComboBox, QButtonGroup,
-    QGridLayout, QSizeGrip, QSizePolicy,
+    QGridLayout, QSizeGrip, QSizePolicy, QToolTip,
 )
 from ui_components import DeviceButton, IconButton, StageButton, Symbol, TitleBar
 from mouse_battery import BatteryMonitor
@@ -25,7 +25,7 @@ LINE = "#526065"
 MUTED = "#a4acb0"
 BLUE = "#4caceb"
 GREEN = "#55d076"
-APP_VERSION = "0.6.2"
+APP_VERSION = "0.6.3"
 _FONTS_LOADED = False
 
 
@@ -578,6 +578,22 @@ class MainWindow(QMainWindow):
         row.addWidget(self.connection_label)
         row.addStretch()
         if receiver_only:
+            battery_note = (
+                "Battery level is estimated by the mouse. It may read higher while "
+                "charging and take a few minutes to settle after unplugging."
+            )
+            battery_info = IconButton("info", battery_note)
+            battery_info.setFixedSize(20, 24)
+            battery_info.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+            battery_info.setAccessibleName("About the battery estimate")
+            battery_info.setAccessibleDescription(battery_note)
+            battery_info.clicked.connect(
+                lambda checked=False: QToolTip.showText(
+                    battery_info.mapToGlobal(battery_info.rect().bottomLeft()),
+                    battery_note, battery_info,
+                )
+            )
+            row.addWidget(battery_info)
             row.addWidget(Symbol("battery", 24, 24))
             self.mouse_battery_label = label("—", 11, MUTED)
             self.mouse_battery_label.setAccessibleName("Mouse battery unavailable")

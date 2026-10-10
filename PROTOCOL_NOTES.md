@@ -27,6 +27,23 @@ The supplied AULA files also show button remapping, macros, five profiles, and L
 
 ## Battery research (2026-10-05)
 
+### Timed USB transition capture (2026-10-10)
+
+A passive capture reproduced the reported percentage jump. Local timestamps:
+
+| Time | Transport | Battery byte | Decoded estimate |
+| --- | --- | --- | --- |
+| 20:19:43.757 | Receiver | `39` | 57%, high bit clear |
+| 20:20:09.906 | USB | `B9` | 57%, high bit set |
+| 20:20:18.186 | USB | `C2` | 66%, high bit set |
+| 20:20:52.093 | USB disconnected | — | — |
+| 20:21:11.479 | Receiver | `42` | 66%, high bit clear |
+| 20:23:19.203 | Receiver | `39` | 57%, high bit clear |
+
+Reports have the same 33-byte layout documented below. The first lower wireless report arrived about 147 seconds after USB disconnected. Fresh receiver reports initially retained 66%, so the elevated reading was present in device reports, not merely cached in the app UI. The same status bit was set at both 57% and 66% on USB; masking that bit is not the cause of the jump. This reproduces a power-transition-related change in the device's estimate, but does not establish the firmware's measurement algorithm, voltage behavior, actual capacity, or recalibration. Full-charge behavior of the status bit remains unverified. Do not apply a fixed percentage correction based on this single cycle.
+
+The raw capture is retained locally under `Old builds/battery-diagnosis-20261010-201925.jsonl` (excluded from Git). No settings writes were made during this capture.
+
 ### Resolved: passive input reports (Devices 0.5.1)
 
 The following earlier feature-report investigation is superseded by tracing the input-report path in the supplied executable. AULA's reader at `0x446750` uses overlapped `ReadFile` for 33 bytes. Reports with ID `09` are packed into window message `0x80A` at `0x446846`. Its handler at `0x435EF0` masks the first payload byte with `0x7F` (`0x435F85`) to obtain charge, then maps values below 20/40/60/80 to 1/2/3/4 bars, with 80 and above giving 5 bars (`0x436072`). It averages a rolling ten samples once ten are available. The high bit is used separately for the image state; charging indication is not exposed in Devices until verified on a charging mouse.
