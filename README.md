@@ -102,7 +102,7 @@ Build the installer with Inno Setup installed:
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build-release.ps1
 ```
 
-Output: **`Latest build/Devices/Devices.exe`** and **`Latest build/Devices-0.6.5-Setup.exe`**. Portable use requires the complete **Devices** folder, including `_internal`.
+Output: **`Latest build/Devices/Devices.exe`** and **`Latest build/Devices-0.6.6-Setup.exe`**. Portable use requires the complete **Devices** folder, including `_internal`.
 
 Run regression tests:
 

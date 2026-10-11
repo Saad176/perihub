@@ -25,7 +25,7 @@ LINE = "#526065"
 MUTED = "#a4acb0"
 BLUE = "#4caceb"
 GREEN = "#55d076"
-APP_VERSION = "0.6.5"
+APP_VERSION = "0.6.6"
 _FONTS_LOADED = False
 
 
@@ -257,6 +257,7 @@ class MainWindow(QMainWindow):
         self.battery_monitor = BatteryMonitor(self.battery_events.finished.emit)
         self.last_dpi_sent = {}
         self.settings = QSettings("Devices", "Device Control")
+        self.load_keyboard_preferences()
         self.selected = str(self.settings.value("ui/device", "mouse"))
         if self.selected not in ("mouse", "keyboard"):
             self.selected = "mouse"
@@ -1060,7 +1061,8 @@ class MainWindow(QMainWindow):
             self.detail.addLayout(row)
         self.keyboard_preview = KeyboardPreview(self)
         self.detail.addWidget(self.keyboard_preview)
-        self.keyboard_effect_note = label("Onboard: use the keyboard brightness key; speed is saved in its profile.", 9, MUTED)
+        note = "Onboard: use the keyboard brightness key; speed is saved in its profile." if self.keyboard_mode in (None, "onboard") else "Lighting is remembered and restored when the app starts"
+        self.keyboard_effect_note = label(note, 9, MUTED)
         self.keyboard_effect_note.setWordWrap(True)
         self.detail.addWidget(self.keyboard_effect_note)
         self.detail.addWidget(label("COLOR", 11, weight=True))
@@ -1128,6 +1130,7 @@ class MainWindow(QMainWindow):
         if chosen.isValid():
             self.color = chosen
             self.color_swatch.setStyleSheet(f"background:{chosen.name()}; border:1px solid #65727a;")
+            self.save_keyboard_preferences()
             self.update_keyboard_effect()
 
     def choose_preset(self, hex_color):
@@ -1138,10 +1141,36 @@ class MainWindow(QMainWindow):
     def show_keyboard_brightness(self, value):
         self.keyboard_brightness = value
         self.brightness_value.setText(f"{value}%")
+        self.save_keyboard_preferences()
 
     def show_keyboard_speed(self, value):
         self.keyboard_speed = value
         self.speed_value.setText(f"{value}%")
+        self.save_keyboard_preferences()
+
+    def load_keyboard_preferences(self):
+        modes = {"onboard", "static", "off", "breathe", "rainbow", "soft_rainbow", "wave", "spectrum", "twinkle"}
+        mode = str(self.settings.value("keyboard/mode", "onboard"))
+        self.keyboard_preferred_mode = mode if mode in modes else "onboard"
+        self.keyboard_resume_mode = self.keyboard_preferred_mode if self.keyboard_preferred_mode != "onboard" else None
+        color = QColor(str(self.settings.value("keyboard/color", "#4caceb")))
+        self.color = color if color.isValid() else QColor("#4caceb")
+        for attribute, key, default, lower, upper in (
+            ("keyboard_brightness", "keyboard/brightness", 80, 5, 100),
+            ("keyboard_speed", "keyboard/speed", 50, 10, 100),
+        ):
+            try:
+                value = int(self.settings.value(key, default))
+            except (TypeError, ValueError, OverflowError):
+                value = default
+            setattr(self, attribute, max(lower, min(upper, value)))
+
+    def save_keyboard_preferences(self):
+        self.settings.setValue("keyboard/mode", self.keyboard_preferred_mode)
+        self.settings.setValue("keyboard/color", self.color.name())
+        self.settings.setValue("keyboard/brightness", self.keyboard_brightness)
+        self.settings.setValue("keyboard/speed", self.keyboard_speed)
+        self.settings.sync()
 
     def update_keyboard_effect(self):
         if self.keyboard_mode and self.keyboard_mode != "onboard":
@@ -1160,10 +1189,12 @@ class MainWindow(QMainWindow):
                 self.keyboard_brightness / 100, self.keyboard_speed / 50,
             )
             self.keyboard_mode = mode
+            self.keyboard_preferred_mode = mode
+            self.save_keyboard_preferences()
             self.keyboard_preview.set_mode(mode)
             self.brightness_slider.setEnabled(True)
             self.speed_slider.setEnabled(mode in ("breathe", "rainbow", "soft_rainbow", "wave", "spectrum", "twinkle"))
-            self.keyboard_effect_note.setText("Software effect runs in the tray; Quit restores onboard lighting")
+            self.keyboard_effect_note.setText("Lighting is remembered and restored when the app starts")
             for name, button in self.effect_buttons.items():
                 button.setChecked(name == mode)
             self.keyboard_status_label.setText(f"{mode.replace('_', ' ').title()} effect active")
@@ -1181,6 +1212,8 @@ class MainWindow(QMainWindow):
     def restore_keyboard(self):
         self.keyboard_resume_mode = None
         self.keyboard_mode = "onboard"
+        self.keyboard_preferred_mode = "onboard"
+        self.save_keyboard_preferences()
         self.keyboard_preview.set_mode("onboard")
         for button in self.effect_buttons.values():
             button.setEnabled(False)
