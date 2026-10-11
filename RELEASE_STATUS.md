@@ -1,4 +1,4 @@
-# Devices 0.6.6 local candidate — release status
+# Devices 0.6.6 — release status
 
 Updated 2026-10-11. PeriHub is a Windows peripheral control app. This release currently supports the SC900 Pro and K95 RGB Platinum.
 
