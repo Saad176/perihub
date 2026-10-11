@@ -5,11 +5,11 @@
 A compact Windows tray app for peripheral settings, battery monitoring and keyboard lighting.
 
 ![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-4caceb?style=flat-square)
-![Version](https://img.shields.io/badge/version-0.6.5-55d076?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.6.6-55d076?style=flat-square)
 
-[![Download PeriHub for Windows](images/download-windows.svg)](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.5-Setup.exe)
+[![Download PeriHub for Windows](images/download-windows.svg)](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.6-Setup.exe)
 
-**[Download setup directly](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.5-Setup.exe)** · [Release notes](https://github.com/Saad176/perihub/releases/latest)
+**[Download setup directly](https://github.com/Saad176/perihub/releases/latest/download/Devices-0.6.6-Setup.exe)** · [Release notes](https://github.com/Saad176/perihub/releases/latest)
 
 Everything you need is included in the installer.
 
@@ -20,7 +20,7 @@ Everything you need is included in the installer.
 ## Get the app
 
 1. Click **Download for Windows** above. The Setup EXE downloads directly.
-2. Run the downloaded **`Devices-0.6.5-Setup.exe`**.
+2. Run the downloaded **`Devices-0.6.6-Setup.exe`**.
 3. Open **Devices** from the Start menu.
 
 **That single Setup EXE includes everything you need.** The automatically generated **Source code** ZIP and TAR files are for development; they are not the installer.
@@ -70,7 +70,8 @@ Have a different device? [Request support](https://github.com/Saad176/perihub/is
 - One running instance per Windows user.
 - Optional **Start with Windows**, with no window popping up at sign-in.
 - Keyboard software animations continue while the window is hidden.
-- Normal Quit restores the keyboard's saved onboard lighting.
+- Keyboard effect, color, brightness and speed are remembered and reapplied after startup.
+- Normal Quit restores the keyboard's saved onboard lighting; the software preference is retained for the next launch.
 - Device and mouse-tab selections are remembered.
 - Device cards and settings appear only when supported hardware is detected. When no supported devices are present, the app shows an empty state. Plugging or unplugging devices updates the list automatically.
 
@@ -127,7 +128,7 @@ python -m unittest discover -s tests -q
 ## Documentation
 
 - [User guide](docs/USER_GUIDE.md)
-- [Current release notes](docs/releases/v0.6.5.md)
+- [Current release notes](docs/releases/v0.6.6.md)
 - [GitHub setup and release guide](docs/GITHUB_GUIDE.md)
 - [Protocol notes](PROTOCOL_NOTES.md)
 - [Release status and remaining work](RELEASE_STATUS.md)
