@@ -1,4 +1,4 @@
-# PeriHub 0.6.5
+# PeriHub 0.6.6
 
 A compact Windows tray app for peripheral settings, battery monitoring and keyboard lighting.
 
@@ -6,7 +6,7 @@ Currently supported devices: AULA SC900 Pro and Corsair K95 RGB Platinum. Additi
 
 ## Install or run
 
-Open `Latest build\Devices-0.6.5-Setup.exe`. It installs for your Windows user, bundles Python and Qt, and creates a Start menu entry. Desktop shortcut and start-at-sign-in are optional and unchecked by default. There is no runtime dependency on AULA, iCUE, OpenRGB, PowerShell, a cloud service, or a separately installed Python.
+Open `Latest build\Devices-0.6.6-Setup.exe`. It installs for your Windows user, bundles Python and Qt, and creates a Start menu entry. Desktop shortcut and start-at-sign-in are optional and unchecked by default. There is no runtime dependency on AULA, iCUE, OpenRGB, PowerShell, a cloud service, or a separately installed Python.
 
 For portable use, open `Latest build\Devices\Devices.exe` and keep the whole folder together. Quit any older copy from its tray menu before opening an update. The EXE alone is not portable: its `_internal` folder contains the required runtime and assets. To share a single file, use the Setup EXE.
 
@@ -20,7 +20,7 @@ The original receiver is `093A:522C`; wired USB is `093A:622C`. USB takes priori
 
 Mouse writes run in one background queue and check relevant readback before showing success. Controls are disabled when settings cannot be read and enabled after recovery. Reconnect error messages wrap within the panel, so they cannot push DPI values out of view.
 
-K95: Onboard restores its saved animation. Static, Breathe, Rainbow, Soft Rainbow, Wave, Spectrum, Twinkle and Off are software effects with color, brightness and speed where applicable. Onboard brightness uses the physical keyboard brightness key; the app does not edit its saved animation speed. Software effects continue in the tray and resume after a detected reconnect. Normal Quit restores onboard lighting. Competing lighting software can override this app.
+K95: Onboard restores its saved animation. Static, Breathe, Rainbow, Soft Rainbow, Wave, Spectrum, Twinkle and Off are software effects with color, brightness and speed where applicable. Onboard brightness uses the physical keyboard brightness key; the app does not edit its saved animation speed. Lighting effect, color, brightness and speed are remembered locally and restored automatically when the keyboard is detected after app startup or reconnect. Selecting Onboard is also remembered. Software effects continue in the tray. Normal Quit restores onboard lighting without erasing the saved software preference; the next launch reapplies it. Competing lighting software can override this app.
 
 ## Window and preferences
 

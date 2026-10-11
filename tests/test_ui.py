@@ -352,6 +352,92 @@ class MouseUiTests(unittest.TestCase):
         selected = [name for name, button in self.window.effect_buttons.items() if button.isChecked()]
         self.assertEqual(selected, ["rainbow"])
 
+    def test_keyboard_preferences_survive_restart_and_apply_with_mouse_selected(self):
+        self.window.show_device('keyboard')
+        with patch.object(self.window.keyboard_animator, 'set_effect'):
+            self.window.choose_preset('#ffffff')
+            self.window.show_keyboard_brightness(35)
+            self.window.show_keyboard_speed(80)
+        with patch.object(self.window.keyboard_animator, 'stop') as stop:
+            self.window.stop_keyboard()
+            stop.assert_called_once_with(restore=True)
+        self.assertEqual(self.settings.value('keyboard/mode'), 'static')
+        self.settings.setValue('ui/device', 'mouse')
+        with patch.object(app.MainWindow, 'refresh_devices'), patch('keyboard_direct.KeyboardAnimator.set_effect') as apply:
+            restarted = app.MainWindow()
+            try:
+                restarted.on_scan_finished({'mouse': True, 'keyboard': True})
+                apply.assert_called_once_with('static', (255, 255, 255), .35, 1.6)
+                self.assertEqual(restarted.selected, 'mouse')
+                self.assertEqual(restarted.keyboard_mode, 'static')
+                restarted.on_scan_finished({'mouse': True, 'keyboard': True})
+                self.assertEqual(apply.call_count, 1)
+            finally:
+                restarted.stop_scanner()
+                restarted.tray.hide()
+                restarted.close()
+
+    def test_saved_lighting_waits_for_keyboard_and_survives_error(self):
+        self.settings.setValue('keyboard/mode', 'rainbow')
+        with patch.object(app.MainWindow, 'refresh_devices'), patch('keyboard_direct.KeyboardAnimator.set_effect') as apply:
+            restarted = app.MainWindow()
+            try:
+                restarted.on_scan_finished({'mouse': True, 'keyboard': False})
+                apply.assert_not_called()
+                restarted.on_scan_finished({'mouse': True, 'keyboard': True})
+                apply.assert_called_once()
+                restarted.on_keyboard_error('Unplugged')
+                self.assertEqual(self.settings.value('keyboard/mode'), 'rainbow')
+            finally:
+                restarted.stop_scanner()
+                restarted.tray.hide()
+                restarted.close()
+
+    def test_onboard_selection_is_remembered_without_startup_write(self):
+        self.window.show_device('keyboard')
+        with patch.object(self.window.keyboard_animator, 'set_effect'):
+            self.window.apply_keyboard_effect('static')
+        with patch.object(self.window, '_restore_keyboard_worker'):
+            self.window.restore_keyboard()
+        self.assertEqual(self.settings.value('keyboard/mode'), 'onboard')
+        with patch.object(app.MainWindow, 'refresh_devices'), patch('keyboard_direct.KeyboardAnimator.set_effect') as apply:
+            restarted = app.MainWindow()
+            try:
+                restarted.on_scan_finished({'mouse': True, 'keyboard': True})
+                apply.assert_not_called()
+                self.assertEqual(restarted.keyboard_mode, 'onboard')
+            finally:
+                restarted.stop_scanner()
+                restarted.tray.hide()
+                restarted.close()
+
+    def test_saved_effect_modes_and_corrupt_preferences(self):
+        with patch.object(app.MainWindow, 'refresh_devices'), patch('keyboard_direct.KeyboardAnimator.set_effect') as apply:
+            for mode in ('static', 'off', 'breathe', 'rainbow', 'soft_rainbow', 'wave', 'spectrum', 'twinkle'):
+                with self.subTest(mode=mode):
+                    self.settings.setValue('keyboard/mode', mode)
+                    restarted = app.MainWindow()
+                    try:
+                        restarted.on_scan_finished({'mouse': True, 'keyboard': True})
+                        self.assertEqual(restarted.keyboard_mode, mode)
+                        self.assertEqual(apply.call_args.args[0], mode)
+                    finally:
+                        restarted.stop_scanner()
+                        restarted.tray.hide()
+                        restarted.close()
+            for key, value in {'mode': 'invalid', 'color': 'invalid', 'brightness': 'bad', 'speed': 999}.items():
+                self.settings.setValue('keyboard/' + key, value)
+            restarted = app.MainWindow()
+            try:
+                self.assertEqual(restarted.keyboard_preferred_mode, 'onboard')
+                self.assertEqual(restarted.color.name(), '#4caceb')
+                self.assertEqual(restarted.keyboard_brightness, 80)
+                self.assertEqual(restarted.keyboard_speed, 100)
+            finally:
+                restarted.stop_scanner()
+                restarted.tray.hide()
+                restarted.close()
+
     def test_onboard_restores_profile_and_disables_software_sliders(self):
         self.window.show_device("keyboard")
         with patch.object(self.window.keyboard_animator, "set_effect"):
