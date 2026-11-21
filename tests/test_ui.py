@@ -10,12 +10,13 @@ from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtCore import QPoint, QPointF, QSettings, Qt, QTimer
+from PySide6.QtCore import QPoint, QPointF, QRect, QSettings, Qt, QTimer
 from PySide6.QtGui import QWheelEvent
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 import app
+from battery_widget import adjacent_tray_area
 
 
 class MouseUiTests(unittest.TestCase):
@@ -202,6 +203,88 @@ class MouseUiTests(unittest.TestCase):
         self.window.on_battery_read({"percent": 61, "bars": 4})
         self.window.on_scan_finished({"mouse": False, "keyboard": True})
         self.assertIsNone(self.window.battery_reading)
+
+    def test_optional_mouse_tray_icon_tracks_valid_readings(self):
+        toggle = self.window.findChild(app.QCheckBox)
+        charge, mouse = self.window.mouse_tray_icons
+        self.window.on_battery_read({"percent": 43, "bars": 3})
+        self.assertFalse(mouse.isVisible())
+        self.assertFalse(charge.isVisible())
+
+        toggle.setChecked(True)
+        self.assertTrue(self.settings.value("mouse/show_battery_in_tray", type=bool))
+        self.assertTrue(mouse.isVisible())
+        self.assertTrue(charge.isVisible())
+        self.assertEqual(charge.toolTip(), "SC900 Pro battery: 43%")
+        self.assertEqual(mouse.toolTip(), charge.toolTip())
+        previous_icon = charge.icon().cacheKey()
+
+        self.window.on_battery_read({"percent": 100, "bars": 5})
+        self.assertIn("100%", charge.toolTip())
+        self.assertNotEqual(previous_icon, charge.icon().cacheKey())
+        self.window.on_battery_read(None)
+        self.assertFalse(mouse.isVisible())
+        self.assertFalse(charge.isVisible())
+
+        self.window.show_device("keyboard")
+        self.window.on_battery_read({"percent": 43, "bars": 3})
+        self.assertTrue(mouse.isVisible())
+        self.assertTrue(charge.isVisible())
+        self.window.on_scan_finished({"mouse": False, "keyboard": True})
+        self.assertFalse(mouse.isVisible())
+        self.assertFalse(charge.isVisible())
+        self.window.on_scan_finished({"mouse": True, "keyboard": True})
+        self.window.show_device("mouse")
+        self.assertTrue(self.window.findChild(app.QCheckBox).isChecked())
+        self.window.on_battery_read({"percent": 43, "bars": 3})
+        self.window.findChild(app.QCheckBox).setChecked(False)
+        self.assertFalse(mouse.isVisible())
+        self.assertFalse(charge.isVisible())
+        self.assertFalse(self.settings.value("mouse/show_battery_in_tray", type=bool))
+
+    def test_taskbar_widget_uses_only_adjacent_visible_tray_slots(self):
+        screen = QRect(0, 0, 1200, 800)
+        work = QRect(0, 0, 1200, 760)
+        mouse = QRect(1000, 760, 28, 40)
+        charge = QRect(1028, 760, 28, 40)
+        self.assertEqual(adjacent_tray_area(charge, mouse, screen, work), mouse.united(charge))
+        self.assertTrue(adjacent_tray_area(mouse, charge.translated(0, -50), screen, work).isEmpty())
+        self.assertTrue(adjacent_tray_area(mouse, charge.translated(28, 0), screen, work).isEmpty())
+        self.assertTrue(adjacent_tray_area(mouse, charge, screen, screen).isEmpty())
+
+    def test_taskbar_widget_falls_back_when_slots_are_unavailable(self):
+        area = QRect(1000, 760, 56, 40)
+        with patch.object(app, "tray_area", return_value=area) as position, \
+                patch("battery_widget.covers_taskbar", return_value=True) as shell:
+            self.window.set_mouse_battery_tray_visible(True)
+            self.window.on_battery_read({"percent": 43, "bars": 3})
+            self.assertTrue(self.window.battery_widget.isVisible())
+            self.assertTrue(self.window.mouse_tray_icons_combined)
+            self.assertTrue(self.window.tray.isVisible())
+            self.assertEqual(self.window.battery_widget.percent, 43)
+            with patch.object(app.QSystemTrayIcon, "isSystemTrayAvailable", return_value=True):
+                self.window.close()
+            self.assertFalse(self.window.isVisible())
+            self.assertTrue(self.window.battery_widget.isVisible())
+            self.window.on_battery_read({"percent": 44, "bars": 3})
+            self.assertEqual(self.window.battery_widget.percent, 44)
+
+            shell.return_value = False
+            self.window.update_battery_widget()
+            self.assertFalse(self.window.battery_widget.isVisible())
+            self.assertFalse(self.window.mouse_tray_icons_combined)
+            self.assertTrue(self.window.tray.isVisible())
+            self.assertTrue(self.window.mouse_charge_tray.isVisible())
+            self.assertIn("44%", self.window.mouse_charge_tray.toolTip())
+
+            shell.return_value = True
+            self.window.update_battery_widget()
+            self.assertTrue(self.window.battery_widget.isVisible())
+            position.return_value = QRect()
+            self.window.update_battery_widget()
+            self.assertFalse(self.window.battery_widget.isVisible())
+            self.window.on_battery_read(None)
+            self.assertFalse(self.window.battery_widget_timer.isActive())
 
     def test_no_horizontal_clipping_at_default_and_minimum_sizes(self):
         for width, height in ((620, 800), (620, 640)):
