@@ -26,8 +26,13 @@ LINE = "#526065"
 MUTED = "#a4acb0"
 BLUE = "#4caceb"
 GREEN = "#55d076"
-APP_VERSION = "0.6.15"
+APP_VERSION = "0.6.16"
 _FONTS_LOADED = False
+TRAY_STYLES = (
+    ("separate", "Separate icons"),
+    ("widget", "Combined widget"),
+    ("number", "Number only"),
+)
 
 
 def load_system_fonts():
@@ -220,7 +225,7 @@ def tray_icon():
     return result
 
 
-def mouse_battery_icon(percent=None):
+def mouse_battery_icon(percent=None, number_only=False):
     """Render either the mouse or the charge at the full tray icon size."""
     result = QIcon()
     if percent is not None:
@@ -229,17 +234,17 @@ def mouse_battery_icon(percent=None):
         font.setPixelSize(32)
         text_path = QPainterPath()
         text_path.addText(0, 0, font, str(percent))
-        digits = text_path.boundingRect()
-
-        font.setPixelSize(18)
-        percent_path = QPainterPath()
-        percent_path.addText(0, 0, font, "%")
-        sign = percent_path.boundingRect()
-        percent_path.translate(digits.right() + 2 - sign.left(), digits.bottom() - sign.bottom())
-        text_path.addPath(percent_path)
+        if not number_only:
+            digits = text_path.boundingRect()
+            font.setPixelSize(18)
+            percent_path = QPainterPath()
+            percent_path.addText(0, 0, font, "%")
+            sign = percent_path.boundingRect()
+            percent_path.translate(digits.right() + 2 - sign.left(), digits.bottom() - sign.bottom())
+            text_path.addPath(percent_path)
 
         bounds = text_path.boundingRect()
-        text_scale = min(15.8 / bounds.width(), 12 / bounds.height())
+        text_scale = min(15.8 / bounds.width(), (14 if number_only else 12) / bounds.height())
 
     for size in (16, 20, 24, 32, 40, 48, 64):
         pixmap = QPixmap(size, size)
@@ -299,8 +304,13 @@ class MainWindow(QMainWindow):
         self.last_dpi_sent = {}
         self.settings = QSettings("Devices", "Device Control")
         self.show_mouse_battery_in_tray = self.settings.value("mouse/show_battery_in_tray", False, type=bool)
-        self.combine_mouse_tray = self.settings.value("mouse/combine_tray_icons", True, type=bool)
-        self.mouse_battery_tray_percent = None
+        default_style = "separate"
+        if self.settings.value("mouse/combine_tray_icons", False, type=bool):
+            default_style = "widget"
+        self.mouse_tray_style = self.settings.value("mouse/tray_style", default_style, type=str)
+        if self.mouse_tray_style not in dict(TRAY_STYLES):
+            self.mouse_tray_style = "separate"
+        self.mouse_charge_icon_key = None
         self.mouse_tray_icons_combined = False
         self.load_keyboard_preferences()
         self.selected = str(self.settings.value("ui/device", "mouse"))
@@ -590,14 +600,14 @@ class MainWindow(QMainWindow):
         self.settings.setValue("mouse/show_battery_in_tray", enabled)
         self.update_mouse_battery_display()
 
-    def set_combine_mouse_tray(self, enabled):
-        self.combine_mouse_tray = enabled
-        self.settings.setValue("mouse/combine_tray_icons", enabled)
-        self.update_battery_widget()
+    def set_mouse_tray_style(self, style):
+        self.mouse_tray_style = style
+        self.settings.setValue("mouse/tray_style", style)
+        self.update_mouse_battery_display()
 
     def update_battery_widget(self):
         reading = self.battery_reading if self.state["mouse"] else None
-        enabled = self.show_mouse_battery_in_tray and self.combine_mouse_tray and reading is not None
+        enabled = self.show_mouse_battery_in_tray and self.mouse_tray_style == "widget" and reading is not None
         if enabled:
             if not self.battery_widget_timer.isActive():
                 self.battery_widget_timer.start()
@@ -615,8 +625,16 @@ class MainWindow(QMainWindow):
         self.battery_widget.hide()
         if self.mouse_tray_icons_combined:
             self.mouse_battery_tray.setIcon(mouse_battery_icon())
-            self.mouse_charge_tray.setIcon(mouse_battery_icon(self.mouse_battery_tray_percent))
+            self.mouse_charge_icon_key = None
             self.mouse_tray_icons_combined = False
+            if reading is not None and self.show_mouse_battery_in_tray:
+                self.update_mouse_charge_icon(reading["percent"])
+
+    def update_mouse_charge_icon(self, percent):
+        key = (percent, self.mouse_tray_style == "number")
+        if key != self.mouse_charge_icon_key:
+            self.mouse_charge_tray.setIcon(mouse_battery_icon(*key))
+            self.mouse_charge_icon_key = key
 
     def update_mouse_battery_display(self):
         """Report only the battery information verified for this receiver."""
@@ -633,15 +651,14 @@ class MainWindow(QMainWindow):
         self.battery_tray_action.setText(f"Mouse battery: {status}")
         self.battery_tray_action.setVisible(receiver_found)
         if self.show_mouse_battery_in_tray and reading is not None:
-            percent = reading["percent"]
-            if percent != self.mouse_battery_tray_percent:
-                if not self.mouse_tray_icons_combined:
-                    self.mouse_charge_tray.setIcon(mouse_battery_icon(percent))
-                self.mouse_battery_tray_percent = percent
+            if not self.mouse_tray_icons_combined:
+                self.update_mouse_charge_icon(reading["percent"])
             for tray in self.mouse_tray_icons:
-                tray.setToolTip(f"SC900 Pro battery: {battery_text}")
-                if not tray.isVisible():
-                    tray.show()
+                tooltip = f"SC900 Pro battery: {battery_text}"
+                if tray.toolTip() != tooltip:
+                    tray.setToolTip(tooltip)
+            self.mouse_charge_tray.show()
+            self.mouse_battery_tray.setVisible(self.mouse_tray_style != "number")
         else:
             for tray in self.mouse_tray_icons:
                 tray.hide()
@@ -744,17 +761,19 @@ class MainWindow(QMainWindow):
         tray_checkbox.setToolTip("Show the mouse and battery percentage in the taskbar notification area.")
         tray_checkbox.setChecked(self.show_mouse_battery_in_tray)
         tray_checkbox.toggled.connect(self.set_mouse_battery_tray_visible)
-        widget_checkbox = QCheckBox("Combine as taskbar widget")
-        widget_checkbox.setStyleSheet(tray_checkbox.styleSheet())
-        widget_checkbox.setToolTip("Pin the two battery icons next to each other to combine them. Separate icons are used when there is no room.")
-        widget_checkbox.setChecked(self.combine_mouse_tray)
-        widget_checkbox.setEnabled(self.show_mouse_battery_in_tray)
-        widget_checkbox.toggled.connect(self.set_combine_mouse_tray)
-        tray_checkbox.toggled.connect(widget_checkbox.setEnabled)
+        style = ScrollSafeCombo()
+        style.setAccessibleName("Tray style")
+        style.setToolTip("The combined widget uses two adjacent battery slots pinned to the taskbar.")
+        for value, title in TRAY_STYLES:
+            style.addItem(title, value)
+        style.setCurrentIndex(style.findData(self.mouse_tray_style))
+        style.setEnabled(self.show_mouse_battery_in_tray)
+        style.currentIndexChanged.connect(lambda: self.set_mouse_tray_style(style.currentData()))
+        tray_checkbox.toggled.connect(style.setEnabled)
         tray_options = QHBoxLayout()
         tray_options.addStretch()
         tray_options.addWidget(tray_checkbox)
-        tray_options.addWidget(widget_checkbox)
+        tray_options.addWidget(style)
         self.header.addLayout(tray_options)
         if self.state["mouse"] and self.state.get("mouse_connection") == "wired":
             self.connection_label.setText("● Connected via USB")
